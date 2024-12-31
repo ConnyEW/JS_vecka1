@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etch-a-Sketch</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: helvetica;
+        }
+
+        body {
+            margin: 5% 10%;
+            background-color: black;
+            color: white;
+            text-align: center;
+        }
+
+        #myCanvas-container {
+            display: inline-flex;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+            border: 5px solid white;
+        }
+
+        #myCanvas {
+            width: 480px;
+            height: 360px;
+            background-color: rgb(70, 70, 70);
+            margin: 0;
+            padding: 0;
+        }
+
+        .unit-div {
+            height: 2px;
+            width: 2px;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>Etch-a-Sketch!</h1>
+        <div id="myCanvas-container">
+            <canvas id="myCanvas" width="480" height="360">
+
+            </canvas>
+        </div>
+
+        <h4>
+            Brush size:
+            <select name="brush-size" id="brush-dropdown">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+            </select>
+        </h4>
+        <h4>
+            Canvas size:
+            <select name="canvas-size" id="canvas-dropdown">
+                <option value="1">480x360</option>
+                <option value="2">640x480</option>
+                <option value="3">800x600</option>
+            </select>
+        </h4>
+        <button id="clear" onclick="clearCanvas()" style="cursor: pointer">Clear canvas</button>
+        <h4 id="message"></h4>
+    </main>
+
+    <script>
+        // This Etch-a-Sketch is built around the canvas element.
+
+        // Generate default brush size
+        addEventListener("DOMContentLoaded", function () {
+            brushSize = parseInt(document.getElementById("brush-dropdown").value);
+        });
+
+        const canvas = document.getElementById("myCanvas");
+        const ctx = canvas.getContext("2d");
+        let brushSize;
+        let marker = [0, 0]; // start drawing from top-left
+
+        // Declare EventListeners for dropdown menus
+
+        document.getElementById("brush-dropdown").addEventListener("change", function (event) {
+            brushSize = parseInt(event.target.value);
+        });
+
+        document.getElementById("canvas-dropdown").addEventListener("change", function (event) {
+            const value = parseInt(event.target.value);
+            // Have to change both CSS style for display size and canvas size for resolution
+            switch (value) {
+                case 1:
+                    canvas.width = 480;
+                    canvas.height = 360;
+                    canvas.style.width = "480px";
+                    canvas.style.height = "360px";
+                    break;
+                case 2:
+                    canvas.width = 640;
+                    canvas.height = 480;
+                    canvas.style.width = "640px";
+                    canvas.style.height = "480px";
+                    break;
+                case 3:
+                    canvas.width = 800;
+                    canvas.height = 600;
+                    canvas.style.width = "800px";
+                    canvas.style.height = "600px";
+                    break;
+            }
+            clearCanvas();
+        });
+
+        // Listen for keyboard inputs and send the keycode to moveMarker().
+        // preventDefault() is to prevent the arrow keys from scrolling the page. 
+        document.addEventListener("keydown", function (event) {
+            if ([37, 38, 39, 40].includes(event.keyCode)){
+                event.preventDefault();
+                moveMarker(event.keyCode);
+            }
+        });
+
+        function moveMarker(key) {
+            // 37 = left, 38 = up, 39 = right, 40 = down
+            switch (key) {
+                case 37:
+                    if (marker[0] > 0) {
+                        marker[0]--;
+                        console.log(`Moved left: (${marker[0]}, ${marker[1]})`);
+                    }
+                    break;
+
+                case 38:
+                    if (marker[1] > 0) {
+                        marker[1]--;
+                        console.log(`Moved up: (${marker[0]}, ${marker[1]})`);
+                    }
+                    break;
+
+                case 39:
+                    if (marker[0] < canvas.width - brushSize) {
+                        marker[0]++;
+                        console.log(`Moved right: (${marker[0]}, ${marker[1]})`);
+                    }
+                    break;
+
+                case 40:
+                    if (marker[1] < canvas.height - brushSize) {
+                        marker[1]++;
+                        console.log(`Moved down: (${marker[0]}, ${marker[1]})`);
+                    }
+                    break;
+            }
+            paint(brushSize);
+        }
+
+        function paint(brush) {
+            ctx.fillStyle = "white";
+            ctx.fillRect(marker[0], marker[1], brush, brush);
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let message = document.getElementById("message");
+            message.innerHTML = "Canvas cleared!";
+            setTimeout(function () {
+                message.innerHTML = "";
+            }, 2000);
+            marker = [0, 0];
+        }
+
+    </script>
+</body>
+
+</html>

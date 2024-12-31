@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keypress events</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: helvetica;
+        }
+        body {
+            margin: 5% 20%;
+            background-color: black;
+            color: white;
+            display: flex;
+            justify-content: center;
+        }
+        #keyPressOutput {
+            width: 100%;
+            height: auto;
+            border: solid 5px white;
+            border-radius: 10%;
+            padding: 2em;
+            text-align: center;
+            font-size: 36px;
+        }
+    </style>
+</head>
+<body>
+    <div id="keyPressOutput">
+        <h1>Press a key to display its keycode:</h1>
+        <h1 id="input">...</h1>
+    </div>
+
+    <script>
+        addEventListener("keydown",
+            function(event) {
+                document.getElementById("input").innerHTML = event.keyCode;
+            }
+        )
+    </script>
+</body>
+</html>

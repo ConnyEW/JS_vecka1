@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etch-a-Sketch</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: helvetica;
+        }
+
+        body {
+            margin: 5% 10%;
+            background-color: black;
+            color: white;
+            text-align: center;
+        }
+
+        #canvas-container {
+            display: inline-flex;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+            border: 5px solid white;
+        }
+
+        #canvas {
+            width: 480px;
+            height: 360px;
+            background-color: rgb(70, 70, 70);
+            margin: 0;
+            padding: 0;
+            display: grid;
+            /* Each grid cell is 2*2 pixels */
+            grid-template-columns: repeat(240, 2px);
+            grid-template-rows: repeat(180, 2px);
+        }
+
+        .unit-div {
+            height: 2px;
+            width: 2px;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>Etch-a-Sketch!</h1>
+        <div id="canvas-container">
+            <div id="canvas">
+
+            </div>
+        </div>
+
+        <h4>
+            Brush size:
+            <select name="brush-size" id="brush-dropdown">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+            </select>
+        </h4>
+        <h4>
+            Canvas size:
+            <select name="canvas-size" id="canvas-dropdown">
+                <option value="1">480x360</option>
+                <option value="2">640x480</option>
+                <option value="3">800x600</option>
+            </select>
+        </h4>
+        <button id="clear" onclick="clearCanvas()" style="cursor: pointer">Clear canvas</button>
+        <h4 id="message"></h4>
+    </main>
+
+    <script>
+        // This Etch-a-Sketch is built around a div grid. It works well for lower resolutions but
+        // struggles with performance at higher resolutions as the highest resolution appends
+        // 120 000 divs to #canvas.
+
+        // Generate default canvas with default brush size
+        addEventListener("DOMContentLoaded", function () {
+            generateGrid();
+            brushSize = parseInt(document.getElementById("brush-dropdown").value);
+        });
+
+        const canvas = document.getElementById("canvas");
+        let brushSize;
+        let marker = [0, 0]; // start drawing from top-left
+
+        // Declare EventListeners for dropdown menus
+
+        document.getElementById("brush-dropdown").addEventListener("change", function (event) {
+            brushSize = parseInt(event.target.value);
+        });
+
+        document.getElementById("canvas-dropdown").addEventListener("change", function (event) {
+            const value = parseInt(event.target.value);
+            switch (value) {
+                case 1:
+                    canvas.style.width = "480px";
+                    canvas.style.height = "360px";
+                    canvas.style.gridTemplateColumns = "repeat(240, 2px)";
+                    canvas.style.gridTemplateRows = "repeat(120, 2px)";
+                    break;
+                case 2:
+                    canvas.style.width = "640px";
+                    canvas.style.height = "480px";
+                    canvas.style.gridTemplateColumns = "repeat(320, 2px)";
+                    canvas.style.gridTemplateRows = "repeat(240, 2px)";
+                    break;
+                case 3:
+                    canvas.style.width = "800px";
+                    canvas.style.height = "600px";
+                    canvas.style.gridTemplateColumns = "repeat(400, 2px)";
+                    canvas.style.gridTemplateRows = "repeat(300, 2px)";
+                    break;
+            }
+            generateGrid();
+        });
+
+        let rows;
+        let columns;
+        let pixels;
+
+        function generateGrid() {
+            // Reset canvas content and marker position
+            canvas.innerHTML = "";
+            marker = [0, 0];
+
+            // Each "pixel" is 2px*2px
+            rows = Math.floor(canvas.clientHeight / 2);
+            columns = Math.floor(canvas.clientWidth / 2);
+            pixels = new Array(rows);
+            for (let i = 0; i < rows; i++) {
+                pixels[i] = new Array(columns);
+                for (let j = 0; j < columns; j++) {
+                    pixels[i][j] = document.createElement("div");
+                    pixels[i][j].classList.add("unit-div");
+                    canvas.appendChild(pixels[i][j]);
+                }
+            }
+
+            console.log(`Canvas size: ${canvas.clientWidth}px by ${canvas.clientHeight}px`); // Debug log
+            console.log(`Grid dimensions: ${rows} rows by ${columns} columns`); // Debug log
+        }
+
+        // Listen for keyboard inputs and send the keycode to moveMarker().
+        // preventDefault() is to prevent the arrow keys from scrolling the page. 
+        document.addEventListener("keydown", function (event) {
+            if ([37, 38, 39, 40].includes(event.keyCode)){
+                event.preventDefault();
+                moveMarker(event.keyCode);
+            }
+        });
+
+        function moveMarker(key) {
+            // 37 = left, 38 = up, 39 = right, 40 = down
+            switch (key) {
+                case 37:
+                    if (marker[0] > 0) {
+                        marker[0]--;
+                        console.log(`Moved left: (${marker[0]}, ${marker[1]})`);
+                    }
+                    break;
+
+                case 38:
+                    if (marker[1] > 0) {
+                        marker[1]--;
+                        console.log(`Moved up: (${marker[0]}, ${marker[1]})`);
+                    }
+                    break;
+
+                case 39:
+                    if (marker[0] < columns - brushSize) {
+                        marker[0]++;
+                        console.log(`Moved right: (${marker[0]}, ${marker[1]})`);
+                    }
+                    break;
+
+                case 40:
+                    if (marker[1] < rows - brushSize) {
+                        marker[1]++;
+                        console.log(`Moved down: (${marker[0]}, ${marker[1]})`);
+                    }
+                    break;
+            }
+            paint(brushSize);
+        }
+
+        function paint(brush) {
+            for (let i = 0; i < brush; i++) {
+                for (let j = 0; j < brush; j++) {
+                    let x = marker[1] + i;
+                    let y = marker[0] + j;
+
+                    if (pixels[x] && pixels[x][y]) {
+                        pixels[x][y].style.backgroundColor = 'white'
+                    }
+                }
+            }
+        }
+
+        function clearCanvas() {
+            pixels.forEach(function (row) {
+                row.forEach(function (element) {
+                    element.style.backgroundColor = "rgb(70, 70, 70)";
+                });
+            });
+            let message = document.getElementById("message");
+            message.innerHTML = "Canvas cleared!";
+            setTimeout(function () {
+                message.innerHTML = "";
+            }, 2000);
+            marker = [0, 0];
+        }
+
+    </script>
+</body>
+
+</html>
